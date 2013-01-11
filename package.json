@@ -1,5 +1,5 @@
 {
-  "name": "YOUR_APP_NAME",
+  "name": "multisnake",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
@@ -14,5 +14,9 @@
     "mocha": "*",
     "should": "*"
   },
-  "engine": "node ~> 0.6.x"
+  "engines": 
+  {
+    "node": "0.6.x",
+    "npm": "1.1.x"
+  }
 }

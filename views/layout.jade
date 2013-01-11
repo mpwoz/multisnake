@@ -1,0 +1,38 @@
+!!! 5
+//if lt IE 7 ]><html class="ie ie6" lang="en">
+//if IE 7 ]><html class="ie ie7" lang="en">
+//if IE 8 ]><html class="ie ie8" lang="en">
+// [if (gte IE 9)|!(IE)]><!--><html lang="en"> <!--<![endif]
+head
+  meta(charset='utf-8')
+  title MultiSnake
+  meta(name='description', content='Remake of the classic arcade game')
+  meta(name='author', content='Martin Wozniewicz')
+  meta(name="viewport", content="width=device-width, initial-scale=1.0")
+
+  != css('bootstrap')
+  != css('bootstrap-responsive')
+
+body(style="padding-top: 60px; padding-bottom: 40px;")
+  .navbar.navbar-fixed-top
+    .navbar-inner
+      .container
+        a.btn.btn-navbar(data-toggle="collapse", data-target=".nav-collapse")
+          span.icon-bar
+          span.icon-bar
+          span.icon-bar
+        a.brand(href="#") MultiSnake
+        .nav-collapse
+          ul.nav
+            li.active
+              a(href="#") Home
+
+  != body
+
+  != js('jquery')
+  != js('bootstrap')
+  script(src="/socket.io/socket.io.js")
+  != js('socket_handlers')
+  != js('snake_game')
+
+| </html>

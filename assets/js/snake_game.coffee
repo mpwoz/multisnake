@@ -1,145 +1,109 @@
 #
 # Snake game
 #
-#
-gameLoop = (ctx) ->
-
-  # Number of pixels per grid square
-  sqSize = 5
-  boundary = ctx.canvas.width / sqSize
-
-  # x, y components of a direction vector
-  direction = "right"
-
-
-  snake = [[4,3], [3,3], [2,3], [1,3]]
-  head = [5, 3]
-
-  berries = []
-  numBerries = 100
-  berryEaten = false
-
-  score = 0
-
-
-  directionChangedThisFrame = false
-
-  # Spawns a random berry
-  spawnBerry = () ->
-    x = Math.floor(Math.random() * boundary + 1)
-    y = Math.floor(Math.random() * boundary + 1)
-    berries.push([x,y])
- 
-  eatBerry = (i, berry) ->
-    if head[0] is berry[0] and head[1] is berry[1]
-      berryEaten = true
-      berries.splice(i, 1)
-      score++
-
-    
-  # Makes sure all the berries are spawned, and eaten if necessary
-  updateBerries = () ->
-    eatBerry(i, berry) for i, berry of berries
-
-    # Respawn the eaten berries
-    spawnBerry() while numBerries - berries.length
-
-
-  # TODO: code duplication
-  reset = () ->
-    direction = "right"
-    snake = [[4,3], [3,3], [2,3], [1,3]]
-    head = [5, 3]
-    berries = []
-    berryEaten = false
-    score = 0
-
-    
-  # Handles movement and death of snake
-  updateSnake = () ->
-    x = head[0]
-    y = head[1]
-     
-    # Don't hit the edges!
-    if not (0 < x < boundary) or not (0 < y < boundary)
-      return reset()
-    
-    for sec in snake
-      if (x is sec[0]) and (y is sec[1])
-        return reset()
-
-    snake.unshift(head) # push the head to the front of the snake
-    if not berryEaten
-      snake.pop() # remove the tail we didn't eat food
-    else berryEaten = false
-
-    # Where will the new head be?
-    head =
-      switch direction
-        when "left" then [x-1, y]
-        when "right" then [x+1, y]
-        when "up" then [x, y-1]
-        when "down" then [x, y+1]
-
-    directionChangedThisFrame = false
-
-  # Handles drawing a single "square" of the snake
-  drawSection = (section) ->
-    ctx.fillStyle = "rgb(255,255,255)"
-    ctx.fillRect(section[0] * sqSize, section[1] * sqSize, sqSize, sqSize)
-  
-  drawBerry = (berry) ->
-    ctx.fillStyle = "rgb(255,0,0)"
-    ctx.fillRect(berry[0] * sqSize, berry[1] * sqSize, sqSize, sqSize)
 
 
 
-  # Listen for key presses to turn the snake
-  window.addEventListener('keydown', (event) ->
-    key = event.keyCode
-
-    if (37 <= key <= 40) and not directionChangedThisFrame
-      directionChangedThisFrame = true
-
-      direction = "left"  if key is 37 unless direction is "right"
-      direction = "up"    if key is 38 unless direction is "down"
-      direction = "right" if key is 39 unless direction is "left"
-      direction = "down"  if key is 40 unless direction is "up"
-
-
-    console.log( "Keypress: " + event.keyCode \
-      + " New direction = " + direction )
-  )
-
-
-  # repeat for each frame
-  return () ->
-    # Update the snake's position
-    updateSnake()
-
-    updateBerries()
-    
-    # Clear screen, not completely opaque for some fading effect
+snakeArtist = (ctx) ->
+  clearScreen = () ->
     ctx.fillStyle = "rgba(0,0,0, .5)"
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
 
-    # Draw the snake
-    drawSection head
-    drawSection section for section in snake
+  drawSquare = (coords, color, sqSize) ->
+    ctx.fillStyle = color
+    ctx.fillRect(coords[0] * sqSize, coords[1] * sqSize, sqSize, sqSize)
 
-    drawBerry berry for berry in berries
+  drawSnake = (sqSize) ->
+    return (id, snake) ->
+      drawSquare snake.head, 'rgb(255,255,255)', sqSize
+      for b in snake.body
+        drawSquare b, 'rgb(255,255,255)', sqSize
 
-    
+  drawBerry = (sqSize) ->
+    return (berry) ->
+      drawSquare berry, 'rgb(255,0,0)', sqSize
+
+  drawState = (st, sqSize) ->
+    clearScreen()
+
+    ds = drawSnake sqSize
+    ds id, snake for id, snake of st.snakes
+
+    db = drawBerry sqSize
+    db berry for berry in st.berries
+  
+
+  exportFunctions =
+    draw: drawState
+  return exportFunctions
 
 
+
+
+
+snakeGame = (ctx) ->
+
+  artist = snakeArtist ctx
+  boundary = sqSize = null
+
+
+  updateSettings = (settings) ->
+    boundary = settings.boundary
+    sqSize = ctx.canvas.width / boundary
+
+
+  drawState = (state) ->
+    artist.draw state, sqSize
+
+
+  exportFunctions =
+    updateSettings: updateSettings
+    drawState: drawState
+  return exportFunctions
+
+
+
+setupSockets = (game, socket) ->
+  socket.on 'welcome', (data) ->
+    console.log 'Connected! Message from server: ' + data.message
+    socket.emit 'request settings'
+
+  # Receiving game specific settings from server
+  socket.on 'game settings', ( settings ) ->
+    game.updateSettings settings
+
+  socket.on 'gamestate broadcast', (gamestate) ->
+    console.log 'Receiving new gamestate from server'
+    game.drawState gamestate
+
+  return (message, data) ->
+    socket.emit message, data
+
+
+setupInput = (sendMessage) ->
+  # Listen for key presses to turn the snake
+  window.addEventListener('keydown', (event) ->
+    key = event.keyCode
+    if (37 <= key <= 40)
+      direction = switch key
+        when 37 then "left"
+        when 38 then "up"
+        when 39 then "right"
+        when 40 then "down"
+      sendMessage 'change direction', direction
+  )
 
 
 $( () ->
+  host = '#{ host }'
+  socket = io.connect host
+
   canvas = document.getElementById 'game-area'
   ctx = canvas.getContext '2d'
 
-  setInterval(gameLoop(ctx), 60)
-
+  game = snakeGame ctx
+  sendMessageHandler = setupSockets game, socket
+  setupInput sendMessageHandler
 )
 
 

@@ -155,7 +155,7 @@ setSocketHandlers = (io) ->
 exports.newGame = ( io ) ->
   setSocketHandlers io
 
-  intervalId = setInterval gameLoop(io), 100
+  intervalId = setInterval gameLoop(io), 200
   # clearInterval intervalId
   # to stop calling this game loop
 

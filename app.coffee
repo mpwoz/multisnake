@@ -9,7 +9,9 @@ io = socketio.listen(app)
 
 
 
-# assuming io is the Socket.IO server object
+## Comment this out to run with web sockets enabled
+## Uncomment to force ajax polling (for Heroku deployment)
+#
 io.configure ->
   io.set("transports", ["xhr-polling"])
   io.set("polling duration", 10)
@@ -25,6 +27,7 @@ app.use express.static(__dirname + '/public')
 
 # Routes
 app.get '/', routes.index
+app.get '/about', routes.about
 
 snake = require './server_assets/snake_game_state'
 snake.newGame(io)

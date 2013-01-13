@@ -47,10 +47,11 @@ updateSnake = (id, s) ->
     return id
   
   # Don't eat yourself!
-  for b in s.body
-    if (s is b[0]) and (y is b[1])
-      killSnake id
-      return id
+  for i, snake of snakes
+    for b in snake.body
+      if (x is b[0]) and (y is b[1])
+        killSnake id
+        return id
 
   berryEaten = checkBerries x, y
 
@@ -135,7 +136,9 @@ updateDirection = (id, direction) ->
 setSocketHandlers = (io) ->
   io.sockets.on 'connection', (socket) ->
     addPlayer socket.id
-    socket.emit 'welcome', 'message': 'Welcome to MultiSnake!'
+    socket.emit 'welcome',
+      id: socket.id
+      message: 'Welcome to MultiSnake!'
 
     socket.on 'request settings', (data) ->
       socket.emit 'game settings', boundary: BOUNDARY
@@ -152,7 +155,7 @@ setSocketHandlers = (io) ->
 exports.newGame = ( io ) ->
   setSocketHandlers io
 
-  intervalId = setInterval gameLoop(io), 300
+  intervalId = setInterval gameLoop(io), 100
   # clearInterval intervalId
   # to stop calling this game loop
 

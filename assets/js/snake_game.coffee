@@ -5,6 +5,11 @@
 
 
 snakeArtist = (ctx) ->
+
+  snakeid = ""
+  setId = (id) ->
+    snakeid = id
+
   clearScreen = () ->
     ctx.fillStyle = "rgba(0,0,0, .5)"
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height)
@@ -15,9 +20,10 @@ snakeArtist = (ctx) ->
 
   drawSnake = (sqSize) ->
     return (id, snake) ->
-      drawSquare snake.head, 'rgb(255,255,255)', sqSize
+      color = if snakeid is id then 'rgb(0,255,119)' else 'rgb(173,173,173)'
+      drawSquare snake.head, color, sqSize
       for b in snake.body
-        drawSquare b, 'rgb(255,255,255)', sqSize
+        drawSquare b, color, sqSize
 
   drawBerry = (sqSize) ->
     return (berry) ->
@@ -34,6 +40,7 @@ snakeArtist = (ctx) ->
   
 
   exportFunctions =
+    setId: setId
     draw: drawState
   return exportFunctions
 
@@ -46,6 +53,8 @@ snakeGame = (ctx) ->
   artist = snakeArtist ctx
   boundary = sqSize = null
 
+  setId = (id) ->
+    artist.setId id
 
   updateSettings = (settings) ->
     boundary = settings.boundary
@@ -57,6 +66,7 @@ snakeGame = (ctx) ->
 
 
   exportFunctions =
+    setId: setId
     updateSettings: updateSettings
     drawState: drawState
   return exportFunctions
@@ -65,7 +75,9 @@ snakeGame = (ctx) ->
 
 setupSockets = (game, socket) ->
   socket.on 'welcome', (data) ->
-    console.log 'Connected! Message from server: ' + data.message
+    game.setId data.id
+    console.log 'Connected! Id is: ' + data.id
+    console.log ' Message from server: ' + data.message
     socket.emit 'request settings'
 
   # Receiving game specific settings from server

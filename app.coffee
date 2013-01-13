@@ -5,7 +5,18 @@ socketio = require 'socket.io'
 
 app = express.createServer()
 io = socketio.listen(app)
-io.set 'log level', 1
+
+
+
+
+# assuming io is the Socket.IO server object
+io.configure ->
+  io.set("transports", ["xhr-polling"])
+  io.set("polling duration", 10)
+  io.set 'log level', 1
+
+
+
 
 app.use express.logger {format: ':method :url :status :response-time ms'}
 app.use require("connect-assets")()

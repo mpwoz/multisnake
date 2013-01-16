@@ -20,7 +20,7 @@ OPPOSITES =
 
 
 
-randomCoord = -> Math.floor(Math.random() * BOUNDARY )
+randomCoord = -> Math.floor(Math.random() * (BOUNDARY - 1) )
 randomSquare = -> [randomCoord(), randomCoord()]
 
 spawnBerry = ->

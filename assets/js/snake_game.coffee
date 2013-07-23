@@ -1,8 +1,3 @@
-#
-# Snake game
-#
-
-
 
 snakeArtist = (ctx) ->
 
@@ -45,9 +40,6 @@ snakeArtist = (ctx) ->
   return exportFunctions
 
 
-
-
-
 snakeGame = (ctx) ->
 
   artist = snakeArtist ctx
@@ -64,7 +56,6 @@ snakeGame = (ctx) ->
   drawState = (state) ->
     artist.draw state, sqSize
 
-
   exportFunctions =
     setId: setId
     updateSettings: updateSettings
@@ -73,6 +64,7 @@ snakeGame = (ctx) ->
 
 
 
+# Configure websocket handlers
 setupSockets = (game, socket) ->
   socket.on 'welcome', (data) ->
     game.setId data.id
@@ -92,8 +84,8 @@ setupSockets = (game, socket) ->
     socket.emit message, data
 
 
+# Configure controls
 setupInput = (sendMessage) ->
-  # Listen for key presses to turn the snake
   window.addEventListener('keydown', (event) ->
     key = event.keyCode
     if (37 <= key <= 40)
@@ -106,16 +98,19 @@ setupInput = (sendMessage) ->
   )
 
 
-$( () ->
+(() ->
   host = '#{ host }'
   socket = io.connect host
 
   canvas = document.getElementById 'game-area'
   ctx = canvas.getContext '2d'
 
+  # Scale game to fit window TODO
+  ctx.canvas.height = ctx.canvas.width = window.innerHeight * .9
+
   game = snakeGame ctx
   sendMessageHandler = setupSockets game, socket
   setupInput sendMessageHandler
-)
+)()
 
 

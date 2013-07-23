@@ -12,10 +12,10 @@ io = socketio.listen(app)
 ## Comment this out to run with web sockets enabled
 ## Uncomment to force ajax polling (for Heroku deployment)
 #
-io.configure ->
-  io.set("transports", ["xhr-polling"])
-  io.set("polling duration", 10)
-  io.set 'log level', 1
+#io.configure ->
+#  io.set("transports", ["xhr-polling"])
+#  io.set("polling duration", 10)
+#  io.set 'log level', 1
 
 
 
